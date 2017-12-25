@@ -17,12 +17,38 @@ var rosterList = request.get(
     function (error, response, body) {
         if (!error && response.statusCode == 200) {
         	console.log("Hello!!");
-            console.log(body)
-            jsonResp = JSON.parse(body);
-            console.log("return: " + jsonResp);
+            // console.log(body + "\n ---------- ");
+            var googleRespRegex = /setResponse\((.*)\);/g;
+            var cleanJSON = googleRespRegex.exec(body);
+            jsonResp = JSON.parse(cleanJSON[1], function(key, value) {
+            	return value == null 
+            		? "" 
+            		: value;
+            });
+            console.log(" ------- ");
+            var columnInfo = jsonResp.table.col;
+            var teamInfo   = jsonResp.table.rows;
+
+            teamInfo.forEach(function(team) {
+            	var teamName = team.c[1].v;
+            	var captain  = team.c[2].v;
+            	var roster 	 = team.c[3].v;
+
+            	console.log("\nTeam:\t\t" + JSON.stringify(teamName));
+            	console.log("Captain:\t"  + JSON.stringify(captain))
+            	console.log("Roster:\t\t" + JSON.stringify(roster, function(key, value) {
+        			if (value.includes("\n") || value.includes("\r")) {
+        				value = value.replace(/\r/g,   ",");
+        				value = value.replace(/\n/g,   ",");
+        				value = value.replace(/,,/g,   ",");
+        			}
+        			return value;
+            	}));
+
+            });
 
         }
-    }
+	}
 );
 
 

@@ -7,14 +7,17 @@ var request = require('request');
 var sqlQuery = "select%20*";
 var urlQuery = "gviz/tq?tq=" + sqlQuery;
 var rosterHash = "1uIGWI3CzdNPlXPgHvt1hLBu9-BLSAUK32AsGZoFDVlI";
-var waiverHash = "";
-var myURL = 'https://docs.google.com/spreadsheets/d/' + rosterHash + '/' + urlQuery;
+var waiverHash = "1QOFmQjSvypT_pfdu_lrE9GXHcde8bJ0KayzZW-IaZ3c";
+// https://docs.google.com/spreadsheets/d/1QOFmQjSvypT_pfdu_lrE9GXHcde8bJ0KayzZW-IaZ3c/gviz/tq?q=select%20*
+// https://docs.google.com/spreadsheets/d/1QOFmQjSvypT_pfdu_lrE9GXHcde8bJ0KayzZW-IaZ3c/edit?usp=sharing
+var rosterURL = 'https://docs.google.com/spreadsheets/d/' + rosterHash + '/' + urlQuery;
+var waiverURL = 'https://docs.google.com/spreadsheets/d/' + waiverHash + '/' + urlQuery;
 
-
-console.log("Send request to " + myURL);
+console.log("Send request to " + rosterURL);
 var rosterList = request.get(
-    myURL,
+    rosterURL,
     function (error, response, body) {
+    	// return;
         if (!error && response.statusCode == 200) {
         	console.log("Hello!!");
             // console.log(body + "\n ---------- ");
@@ -51,7 +54,47 @@ var rosterList = request.get(
 	}
 );
 
+console.log("Send request to " + waiverURL);
+var waiverList = request.get(
+    waiverURL,
+    function (error, response, body) {
+        if (!error && response.statusCode == 200) {
+        	console.log("Waivers!!");
+            console.log(body + "\n ---------- ");
+            var googleRespRegex = /setResponse\((.*)\);/g;
+            var cleanJSON = googleRespRegex.exec(body);
+            jsonResp = JSON.parse(cleanJSON[1], function(key, value) {
+            	return value == null 
+            		? "" 
+            		: value;
+            });
+            console.log(" ------- ");
+            var columnInfo = jsonResp.table.col;
+            var teamInfo   = jsonResp.table.rows;
 
+            teamInfo.forEach(function(team) {
+            	var teamName = team.c[0].v;
+            	var player   = team.c[1].v;
+            	var date 	 = team.c[4].f;
+
+            	console.log("\nTeam:\t\t" + JSON.stringify(teamName));
+            	console.log("Player:\t\t"  + JSON.stringify(player))
+            	console.log("Date:\t\t" + JSON.stringify(date, function(key, value) {
+            		if (value == undefined) {
+            			return "----- NOT SIGNED";
+            		} else if (value.includes("\n") || value.includes("\r")) {
+        				value = value.replace(/\r/g,   ",");
+        				value = value.replace(/\n/g,   ",");
+        				value = value.replace(/,,/g,   ",");
+        			}
+        			return value;
+            	}));
+
+            });
+
+        }
+	}
+);
 
 
 

@@ -42,27 +42,61 @@ function main() {
     var signaturePromise = readSheetByURL(signedURL);
 
     Promise.all([signaturePromise, rosterPromise]).then((myResult) => {
-        // var signedJSON = myResult[0];
+        var signedJSON = myResult[0];
         var rosterJSON = myResult[1];
 
-        // console.log(JSON.stringify(signedJSON));
-        // console.log("\n\n" + JSON.stringify(rosterJSON));        
-
+        var waiverList  = pullWaivers(signedJSON);
         var teamRosters = pullRosters(rosterJSON);
+
+        // compare teamRosters with waiver players
+        teamRosters.forEach(function(team) {
+        	// console.log(team);
+        	console.log("\n" + team.team);
+        	var players = team.players;
+        	players.forEach(function(curPlayer) {
+        		// console.log("Checking player: " + curPlayer);
+        		if (curPlayer != 'undefined' && waiverList.indexOf(curPlayer) > -1) {
+        			console.log("\t" + curPlayer + " signed!");
+        		}  else {
+        			console.log("\t----" + curPlayer + " has not signed their waiver");
+        		}
+        	});
+        });
     });
 };
 
 function matchTeam(arr, teamName) { 
-    // console.log(entry);
-
-    // console.log(entry.team);
-    // console.log(entry.team === teamName);
     return arr.some(function(entry) {
-        console.log("----\n" + entry.team);
-        console.log(teamName);
-        console.log(entry.name == teamName);
-        return entry.name == teamName;
-        });
+    	var curTeam = entry.team;
+        // curTeam == teamName ? true : false;
+        if (curTeam == teamName) {
+        	return true;
+        } else { 
+        	return false;
+        }
+    });
+};
+
+function pullWaivers(waiverJSON) {
+	var signedPlayers = [];
+
+    var teamList = [];
+    var playerList = [];
+    var columnInfo = waiverJSON.table.col;
+    var waiverInfo = waiverJSON.table.rows;
+
+    waiverInfo.forEach(function(entry) {
+    	// console.log(entry);
+    	var playerName = entry.c[1].v + " " + entry.c[2].v;
+
+    	if (!signedPlayers.includes(playerName)) {
+    		signedPlayers.push(playerName);
+    	}
+    });
+
+    // console.log(signedPlayers);
+    return signedPlayers;
+
 };
 
 function pullRosters(rosterJSON) {
@@ -81,23 +115,11 @@ function pullRosters(rosterJSON) {
         // Eventually add logic to determine correct column
         var teamName = entry.c[0].v;
         var playerName = entry.c[1].v + " " + entry.c[2].v;
-        // console.log("Team: ", teamName);
-        // console.log("Player: ", playerName);
 
-        // if (!teamStruct.some(entry, matchTeam(entry, teamName))) {
-            // console.log("New teamName found!" + teamName);
-        if (!matchTeam(teamStruct, teamName)) {
+        if (!matchTeam(teamStruct, teamName) && teamName != 'Team') {
             var teamJson = {team: teamName, players: []};
             teamStruct.push(teamJson);   
         }
-
-        if (!teamList.includes(teamName)) {
-            teamList.push(teamName);
-        } 
-
-        if (!playerList.includes(playerName)) {
-            playerList.push(playerName);
-        }       
 
         teamStruct.forEach(function(curTeam) {
             if (curTeam.team == teamName) {

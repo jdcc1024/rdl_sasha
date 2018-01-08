@@ -1,158 +1,136 @@
 // We need this to build our post string
-var querystring = require('querystring');
-var http = require('http');
 var fs = require('fs');
 var request = require('request');
 
 var sqlQuery = "select%20*";
+var orderBy = "select%20*%20order%20by%20K";
+
 var urlQuery = "gviz/tq?tq=" + sqlQuery;
+
 var rosterHash = "1uIGWI3CzdNPlXPgHvt1hLBu9-BLSAUK32AsGZoFDVlI";
 var waiverHash = "1QOFmQjSvypT_pfdu_lrE9GXHcde8bJ0KayzZW-IaZ3c";
+var signedHash = "1KPtNdoPCj6Dop2NOXNrVTJBESaer5PFRG9S1tQ6L4LQ";
 // https://docs.google.com/spreadsheets/d/1QOFmQjSvypT_pfdu_lrE9GXHcde8bJ0KayzZW-IaZ3c/gviz/tq?q=select%20*
 // https://docs.google.com/spreadsheets/d/1QOFmQjSvypT_pfdu_lrE9GXHcde8bJ0KayzZW-IaZ3c/edit?usp=sharing
-var rosterURL = 'https://docs.google.com/spreadsheets/d/' + rosterHash + '/' + urlQuery;
+// https://docs.google.com/spreadsheets/d/1KPtNdoPCj6Dop2NOXNrVTJBESaer5PFRG9S1tQ6L4LQ/edit?usp=sharing
+
+// var rosterURL = 'https://docs.google.com/spreadsheets/d/' + rosterHash + '/' + urlQuery;
 var waiverURL = 'https://docs.google.com/spreadsheets/d/' + waiverHash + '/' + urlQuery;
+var signedURL = 'https://docs.google.com/spreadsheets/d/' + signedHash + '/' + urlQuery; //'/gviz/tq?tq=' + orderBy;
+var rosterURL = 'https://docs.google.com/spreadsheets/d/' + signedHash + '/' + urlQuery + '&gid=927592039'; //'/gviz/tq?tq=' + orderBy;
 
-console.log("Send request to " + rosterURL);
-var rosterList = request.get(
-    rosterURL,
-    function (error, response, body) {
-    	// return;
-        if (!error && response.statusCode == 200) {
-        	console.log("Hello!!");
-            // console.log(body + "\n ---------- ");
-            var googleRespRegex = /setResponse\((.*)\);/g;
-            var cleanJSON = googleRespRegex.exec(body);
-            jsonResp = JSON.parse(cleanJSON[1], function(key, value) {
-            	return value == null 
-            		? "" 
-            		: value;
-            });
-            console.log(" ------- ");
-            var columnInfo = jsonResp.table.col;
-            var teamInfo   = jsonResp.table.rows;
+// List of Players, Teams, Waiver data
+var seasondata = {};
 
-            teamInfo.forEach(function(team) {
-            	var teamName = team.c[1].v;
-            	var captain  = team.c[2].v;
-            	var roster 	 = team.c[3].v;
+// parse google gviz response data
+function pullGVizJSON(gQueryResp) {
+        var googleRespRegex = /setResponse\((.*)\);/g;
+        var cleanJSON = googleRespRegex.exec(gQueryResp);
+        jsonResp = JSON.parse(cleanJSON[1], function(key, value) {
+            return value == null 
+                ? "" 
+                : value;
+        });
+        // console.log(cleanJSON);
+        return jsonResp;
+};
 
-            	console.log("\nTeam:\t\t" + JSON.stringify(teamName));
-            	console.log("Captain:\t"  + JSON.stringify(captain))
-            	console.log("Roster:\t\t" + JSON.stringify(roster, function(key, value) {
-        			if (value.includes("\n") || value.includes("\r")) {
-        				value = value.replace(/\r/g,   ",");
-        				value = value.replace(/\n/g,   ",");
-        				value = value.replace(/,,/g,   ",");
-        			}
-        			return value;
-            	}));
+function main() {
+    console.log("Pulling Waiver Info");
 
-            });
+    var rosterPromise = readSheetByURL(rosterURL);
+    var signaturePromise = readSheetByURL(signedURL);
 
+    Promise.all([signaturePromise, rosterPromise]).then((myResult) => {
+        // var signedJSON = myResult[0];
+        var rosterJSON = myResult[1];
+
+        // console.log(JSON.stringify(signedJSON));
+        // console.log("\n\n" + JSON.stringify(rosterJSON));        
+
+        var teamRosters = pullRosters(rosterJSON);
+    });
+};
+
+function matchTeam(arr, teamName) { 
+    // console.log(entry);
+
+    // console.log(entry.team);
+    // console.log(entry.team === teamName);
+    return arr.some(function(entry) {
+        console.log("----\n" + entry.team);
+        console.log(teamName);
+        console.log(entry.name == teamName);
+        return entry.name == teamName;
+        });
+};
+
+function pullRosters(rosterJSON) {
+    var teamStruct = [];
+    /*
+    [ { teamName: 'x', 
+        players: [{ playerName: y, signed: null}] 
+    } ]
+    */
+    var teamList = [];
+    var playerList = [];
+    var columnInfo = rosterJSON.table.col;
+    var teamInfo   = rosterJSON.table.rows;
+
+    teamInfo.forEach(function(entry) {
+        // Eventually add logic to determine correct column
+        var teamName = entry.c[0].v;
+        var playerName = entry.c[1].v + " " + entry.c[2].v;
+        // console.log("Team: ", teamName);
+        // console.log("Player: ", playerName);
+
+        // if (!teamStruct.some(entry, matchTeam(entry, teamName))) {
+            // console.log("New teamName found!" + teamName);
+        if (!matchTeam(teamStruct, teamName)) {
+            var teamJson = {team: teamName, players: []};
+            teamStruct.push(teamJson);   
         }
-	}
-);
 
-console.log("Send request to " + waiverURL);
-var waiverList = request.get(
-    waiverURL,
-    function (error, response, body) {
-        if (!error && response.statusCode == 200) {
-        	console.log("Waivers!!");
-            console.log(body + "\n ---------- ");
-            var googleRespRegex = /setResponse\((.*)\);/g;
-            var cleanJSON = googleRespRegex.exec(body);
-            jsonResp = JSON.parse(cleanJSON[1], function(key, value) {
-            	return value == null 
-            		? "" 
-            		: value;
-            });
-            console.log(" ------- ");
-            var columnInfo = jsonResp.table.col;
-            var teamInfo   = jsonResp.table.rows;
+        if (!teamList.includes(teamName)) {
+            teamList.push(teamName);
+        } 
 
-            teamInfo.forEach(function(team) {
-            	var teamName = team.c[0].v;
-            	var player   = team.c[1].v;
-            	var date 	 = team.c[4].f;
+        if (!playerList.includes(playerName)) {
+            playerList.push(playerName);
+        }       
 
-            	console.log("\nTeam:\t\t" + JSON.stringify(teamName));
-            	console.log("Player:\t\t"  + JSON.stringify(player))
-            	console.log("Date:\t\t" + JSON.stringify(date, function(key, value) {
-            		if (value == undefined) {
-            			return "----- NOT SIGNED";
-            		} else if (value.includes("\n") || value.includes("\r")) {
-        				value = value.replace(/\r/g,   ",");
-        				value = value.replace(/\n/g,   ",");
-        				value = value.replace(/,,/g,   ",");
-        			}
-        			return value;
-            	}));
+        teamStruct.forEach(function(curTeam) {
+            if (curTeam.team == teamName) {
+                if (!curTeam.players.includes(playerName)) {
+                    // console.log("New player found! " + playerName);
+                    curTeam.players.push(playerName);
+                }
+            }
+        });
 
-            });
+    });
 
-        }
-	}
-);
+    // console.log(teamList);
+    // console.log(teamStruct);
+    return teamStruct;
+};
 
+function readSheetByURL(googleSheetURL) {
+    return new Promise(function(resolve, reject) {
+        console.log("Pulling data from " + googleSheetURL);
+        request.get(
+            googleSheetURL,
+            function (error, response, body) {
+                if (!error && response.statusCode == 200) {
+                    var jsonResp = pullGVizJSON(body);                
+                    resolve(jsonResp);
 
+                } else {
+                    reject(error);
+                }
+            }
+        )
+    })
+};
 
-// function PostCode(codestring) {
-//   // Build the post string from an object
-//   var post_data = querystring.stringify({
-//       'compilation_level' : 'ADVANCED_OPTIMIZATIONS',
-//       'output_format': 'json',
-//       'output_info': 'compiled_code',
-//         'warning_level' : 'QUIET',
-//         'js_code' : codestring
-//   });
-
-//   // An object of options to indicate where to post to
-//   var post_options = {
-//       host: 'closure-compiler.appspot.com',
-//       port: '80',
-//       path: '/compile',
-//       method: 'POST',
-//       headers: {
-//           'Content-Type': 'application/x-www-form-urlencoded',
-//           'Content-Length': Buffer.byteLength(post_data)
-//       }
-//   };
-
-//   // Set up the request
-//   var post_req = http.request(post_options, function(res) {
-//       res.setEncoding('utf8');
-//       res.on('data', function (chunk) {
-//           console.log('Response: ' + chunk);
-//       });
-//   });
-
-//   // post the data
-//   post_req.write(post_data);
-//   post_req.end();
-
-// }
-
-
-
-// This is an async file read
-// fs.readFile('LinkedList.js', 'utf-8', function (err, data) {
-//   if (err) {
-//     // If this were just a small part of the application, you would
-//     // want to handle this differently, maybe throwing an exception
-//     // for the caller to handle. Since the file is absolutely essential
-//     // to the program's functionality, we're going to exit with a fatal
-//     // error instead.
-//     console.log("FATAL An error occurred trying to read in the file: " + err);
-//     process.exit(-2);
-//   }
-//   // Make sure there's data before we post it
-//   if(data) {
-//     PostCode(data);
-//   }
-//   else {
-//     console.log("No data to post");
-//     process.exit(-1);
-//   }
-// });
+main();

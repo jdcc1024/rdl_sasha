@@ -1,0 +1,98 @@
+rdl_notes.txt
+
+RDL Goals and Stuff
+--------------------
+
+* RDL is not really fun
+* Avoid reffing if possible, try to be social
+** If possible, reffing is the last thing we need to do in the gym
+* Improve overall social aspect (speak to people)
+* 
+
+* Changing too many things at once
+* Caring too much about the rules, etc
+* 
+
+
+
+For us
+* Department, schedule, 
+* Not sure if we can do what we want to do
+* 
+
+Website and Schedules
+* Who does what
+* How to co-ordinate things
+
+* Tablets
+* Unfeasible until we have 6, and have a better solution
+* Put on hold until next season
+
+#####
+GOAL: All scores in by Wednesday Morning
+GOAL: Create schedule by EOD of Thursday
+
+
+* A solution on how to schedule the teams
+
+** ELO system (set K value)
+** VDL System (tier 1, 2, 3 worth different points)
+** Is there a way to track how often players have played each other?
+** Anything we can create to begin watching the past
+*** Constraints: Exec, Tiering, Past History
+*** How do we choose the optimal mix-up for teams without repetition
+*** Side Project: A system that will track team play history and help calculate optimal schedule
+
+JCC: Try Week 4 and Week 5
+
+Tiering for Playoffs: How do we split all the teams
+
+
+** Create Venue and Set Events
+** 
+
+
+* Playoff and Tiering
+* 
+
+* Waivers
+* 
+ 
+
+* JCC & Michal: 10 tips to share with players
+** Order by skill level and ramp-up?
+
+
+The different roles of Dodgeball: Gunners, Catchers, Sweepers
+There are 2 times to throw: When you throw with your team, and when your opponent is not paying attention. Always throw from the line
+Catching tips! Don't turn away
+Suvival Tips!
+Passing the ball: If 
+
+
+1. Court Awareness, know who has all the balls, keep your head up at all times (avoid turning around)
+2. Know your count and use it. Remember that you have 10s to hold the ball. You're only a thread on the court as long as you are holding the ball
+3. Throwing Together: Number players off 1 to 6 (Left to Right). When you guys throw together, try your best to have the ball touch the wall at the same time
+4. Communication, speak with your teammates, tell each other to work together (throw together). Do your best to listen for other people, and the refs who are counting you
+5. Opening Count: Most higher tier teams hold until the count hits 3 ( usually the balls are spread 1, 5, 6)
+6. Sleeping and Passing: Always think about who else on your team is ready to throw with you. Sweep balls backwards to a safe zone on the court, or to players who 
+7. Take the line (aka Footsies): Create the offensive wall and try to keep your opponents against the wall. When you throw, you should try to throw from the line. Footsies in StreetFighter, or Zone in Ulti
+8. Side to Side movement: Avoid screening your teammates. You want to avoid blocking your teammates field of vision
+9. Survival Tips: If you're the last one alive, you have 2 choices: Throw or Catch. If you throw, pick up at least 2 balls. If you catch, always face the ball
+10. Faking a throw (Pressure and Counter throwing): If someone is going to throw at your teammate, try to fake a throw or take the opportunity to throw at them. 
+
+
+
+10. Pressuring your opponent: If only 2 people are left, you are the last one with the ball, and your opponents are looking at your teammate, fake a throw and try to scare them. Fa
+
+
+
+
+League Ops
+* Rule or Tip every week
+* e.g. avoid running sideways in dodgeball
+* 
+
+Social Media
+* Come up with calendar
+* 

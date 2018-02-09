@@ -3,7 +3,7 @@ var fs = require('fs');
 var request = require('request');
 
 var sqlQuery = "select%20*";
-var orderBy = "select%20*%20order%20by%20K";
+var orderBy  = "select%20*%20order%20by%20K";
 
 var urlQuery = "gviz/tq?tq=" + sqlQuery;
 
@@ -129,7 +129,7 @@ function pullRosters(rosterJSON) {
 
         if (!matchTeam(teamStruct, teamName) && teamName != 'Team') {
             var teamJson = {team: teamName, players: []};
-            teamStruct.push(teamJson);   
+            teamStruct.push(teamJson);
         }
 
         teamStruct.forEach(function(curTeam) {
@@ -140,7 +140,6 @@ function pullRosters(rosterJSON) {
                 }
             }
         });
-
     });
     return teamStruct;
 };

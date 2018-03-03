@@ -28,11 +28,70 @@
 // "Zero Fox Given"];
 
 
+// Team Structure:
+/* { name: X,
+	 players [ {name: Y, waiver: true, waiverDate: yyyymmdd}], 
+	 	playHistory: [week1, week2] 
+ 	 	{
+ 	 		week: #,
+			gym: name,
+			opponents: [a,b,c],
+			scores: [ { opponent: a, score: [w, l, w, w, w, l] } ]
+			spirit: #
+		}
+	stats: {
+		gyms: 		[ {blundell, 1}, {grauer, 3} ],
+		opponents: 	[{a,1}, {b,3}]
+		score: 		{ gamesPlayed: #, gamesWon, #}
+		spirit: 	#
+	}
+ 	}
+ */
+
+
 var myTeams = [];
 
-var addTeam = function(teamName) {
-	var opponents = new Map();
-	var team = {'name': teamName, 'opponents': opponents }
+function addHistory(week, gym, opponents, scores, spirit) {
+	var record = {
+		'week': week,
+		'gym': gym,
+		'opponents': opponents, // []
+		'scores': scores, // []
+		'sprit': spirit
+	};
+	return record;
+};
+
+function addScore(scores, opponent, winloss) {
+	// win loss: [1, 0, 1, 1, 0, 1]
+	if (scores.get(opponent)) {
+		console.log("Already entered scores in for this matchup");
+		return;
+	}
+	scores.set(opponent, winloss);
+	return scores; 
+};
+
+function addTeam(teamName) {
+	// var playHistory = new Map(); // { week: 1, opponents: [a,b,c], score: #wins }
+	var scoreStats = { 'gamesPlayed': 0, 'gamesWon': 0 };
+	var stats = {
+		'gyms': new Map(),
+		'opponents': new Map(),
+		'score': {},
+		'spirit': 0
+	} 
+	var playHistory = []; 
+	var players = [];
+
+
+	// var team = {'name': teamName, 'opponents': opponents };
+	var team = {
+		'name': teamName,
+		'players': players,
+		'playHistory': playHistory,
+		'stats' : stats
+	}
 	myTeams.push(team);
 };
 
@@ -43,20 +102,19 @@ addTeam('d');
 addTeam('e');
 addTeam('f');
 
-
 var week1 = [
 			{'gym': 'Blundell', 'teams' : ["a", "b", "c"]},
-			{'gym': 'Grauer', 'teams' : ["d", "e", "f"]}];
+			{'gym': 'Grauer',   'teams' : ["d", "e", "f"]}];
 
 
 var week2 = [
 			{'gym': 'Blundell', 'teams' : ["a", "e", "f"]},
-			{'gym': 'Grauer', 'teams' : ["d", "c", "b"]}];
+			{'gym': 'Grauer',   'teams' : ["d", "c", "b"]}];
 
 
 var week3 = [
 			{'gym': 'Blundell', 'teams' : ["a", "d", "b"]},
-			{'gym': 'Grauer', 'teams' : ["f", "e", "c"]}];
+			{'gym': 'Grauer',   'teams' : ["f", "e", "c"]}];
 
 var weeks = [week1, week2, week3];
 
@@ -64,16 +122,11 @@ var playHistory = [];
 // map set, map get
 
 var getTeam = function(teamName) {
-	var match = myTeams.some(function (curTeam) {
-		console.log("-----" + curTeam.name);
-		console.log(teamName);
+	return myTeams.find(function (curTeam) {
 		if (curTeam.name == teamName) {
-			console.log("HIT!");
-			console.log(curTeam);
 			return curTeam;
 		}
 	});
-	return match;
 };
 
 function matchTeam(arr, teamName) { 
@@ -88,42 +141,47 @@ function matchTeam(arr, teamName) {
     });
 };
 
+function encounterOpponent(team, opponentName) {
+	var encounters = team.stats.opponents.get(opponentName);
+	if (encounters == undefined) {
+		// A new challenger appears!
+		team.stats.opponents.set(opponentName, 1);
+	} else {
+		team.stats.opponents.set(opponentName, encounters + 1);
+	}
+	// console.log(team.name + " has encountered " + opponentName + " " + team.opponents.get(opponentName) + " times");
+};
 
-weeks.forEach(function(timeslots) {
+function getHistory(team) {
+	var totalGames = 0;
+	team.stats.opponents.forEach(function(encounters, enemy) {
+		// console.log(enemy);
+		// console.log(encounters);
+		console.log("\t" + team.name + " has played " + enemy + " " + encounters + " times");
+		totalGames += encounters;
+	});
+	console.log("Team " + team.name + " has played " + totalGames + " games total\n");
+}
+
+// weeks.forEach(function(timeslots) {
+for (var i = 0; i < weeks.length; i++) {
+	var timeslots = weeks[i];
 	timeslots.forEach(function(night) {
 		// console.log(night.gym);
 		// console.log(night.teams);
 		night.teams.forEach(function(team) {
-			console.log(team);
-			// o(n^2)
+			// o(n^2
 			var curTeam = getTeam(team);
-			console.log(curTeam);
 			night.teams.forEach(function(otherTeam) {
+				var oTeam = otherTeam;
 				if (team != otherTeam) {
-
-					// console.log(" ---- " + otherTeam);
+					encounterOpponent(curTeam, otherTeam);
 				}
 			});
 		});
 	});
+};
+
+myTeams.forEach(function(team) { 
+	getHistory(team);
 });
-
-// function searchTeams(arr, team) {
-// 	return arr.some(function(e) {
-// 		console.log("-----");
-// 		var curTeam = e.team;
-// 		console.log(e.team);
-// 		console.log(team);
-// 		console.log(curTeam == findTeam2);
-
-// 		JSON.stringify(e.name) == team;
-// 	})
-// };
-
-// console.log(searchTeams(myJSON,findTeam));
-// console.log("---------");
-
-// myJSON.forEach(function(entry) {
-// 	var curTeam = entry.team;
-// 	console.log(curTeam == findTeam);
-// });

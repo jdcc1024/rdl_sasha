@@ -47,6 +47,13 @@
 	}
  	}
  */
+var fs = require('fs');
+
+var s8History = fs.readFileSync(".\\s8_gyms.txt", "utf8");
+// console.log(s8History);
+
+var lines = s8History.split("\r\n");
+// console.log(lines);
 
 
 var myTeams = [];
@@ -72,7 +79,20 @@ function addScore(scores, opponent, winloss) {
 	return scores; 
 };
 
+var getTeam = function(teamName) {
+	return myTeams.find(function (curTeam) {
+		if (curTeam.name == teamName) {
+			// console.log("Found team: " + curTeam.name);
+			return curTeam;
+		}
+	});
+};
+
 function addTeam(teamName) {
+
+	if (getTeam(teamName) != undefined) return;
+
+	console.log("Adding Team: " + lines[i]);
 	// var playHistory = new Map(); // { week: 1, opponents: [a,b,c], score: #wins }
 	var scoreStats = { 'gamesPlayed': 0, 'gamesWon': 0 };
 	var stats = {
@@ -95,16 +115,29 @@ function addTeam(teamName) {
 	myTeams.push(team);
 };
 
-addTeam('a');
-addTeam('b');
-addTeam('c');
-addTeam('d');
-addTeam('e');
-addTeam('f');
+function initStats(teamName) {
+	console.log("Initializing " + teamName);
+	var curTeam = getTeam(teamName);
+	myTeams.forEach(function(opponent) {
+		var opponentName = opponent.name;
+		curTeam.stats.opponents.set(opponentName, 0);
+	});	
+}
+
+// addTeam('a');
+// addTeam('b');
+// addTeam('c');
+// addTeam('d');
+// addTeam('e');
+// addTeam('f');
 
 var week1 = [
 			{'gym': 'Blundell', 'teams' : ["a", "b", "c"]},
 			{'gym': 'Grauer',   'teams' : ["d", "e", "f"]}];
+
+var week1 = [
+			{'gym':'BlundellA', 'teams' : []
+			}]
 
 
 var week2 = [
@@ -117,17 +150,12 @@ var week3 = [
 			{'gym': 'Grauer',   'teams' : ["f", "e", "c"]}];
 
 var weeks = [week1, week2, week3];
+weeks = [];
 
 var playHistory = [];
 // map set, map get
 
-var getTeam = function(teamName) {
-	return myTeams.find(function (curTeam) {
-		if (curTeam.name == teamName) {
-			return curTeam;
-		}
-	});
-};
+
 
 function matchTeam(arr, teamName) { 
     return arr.some(function(entry) {
@@ -157,11 +185,33 @@ function getHistory(team) {
 	team.stats.opponents.forEach(function(encounters, enemy) {
 		// console.log(enemy);
 		// console.log(encounters);
-		console.log("\t" + team.name + " has played " + enemy + " " + encounters + " times");
+		// console.log("\t" + team.name + " has played " + enemy + " " + encounters + " times");
+		console.log("\t" + enemy + "\t" + encounters);
 		totalGames += encounters;
 	});
-	console.log("Team " + team.name + " has played " + totalGames + " games total\n");
+	console.log("Team " + team.name + " has played " + (totalGames/weekCount*2) + " nights total\n");
 }
+
+var weekCount = 0; 
+for (var i = 1; i < lines.length; i++) {	
+	if (lines[i].includes("Week")) {		
+		weekCount++;
+		console.log("FOUND WEEK " + weekCount);
+	} else if (lines[i] == "" && !lines[i+1].includes("Week") ) {		
+		var curWeek = [
+				{'gym': weekCount, 'teams' : [ lines[i+1], lines[i+2], lines[i+3], lines[i+4] ]},
+				{'gym': weekCount, 'teams' : [ lines[i+5], lines[i+6], lines[i+7], lines[i+8] ]}
+				];
+		weeks.push(curWeek);
+	} else {		
+		addTeam(lines[i]);
+	}
+}
+
+myTeams.forEach(function(team) { 
+	initStats(team.name);
+});
+
 
 // weeks.forEach(function(timeslots) {
 for (var i = 0; i < weeks.length; i++) {
@@ -169,6 +219,7 @@ for (var i = 0; i < weeks.length; i++) {
 	timeslots.forEach(function(night) {
 		// console.log(night.gym);
 		// console.log(night.teams);
+
 		night.teams.forEach(function(team) {
 			// o(n^2
 			var curTeam = getTeam(team);
@@ -182,6 +233,7 @@ for (var i = 0; i < weeks.length; i++) {
 	});
 };
 
+console.log("\nPrinting Game History. Number of Teams: " + (myTeams.length - 1));
 myTeams.forEach(function(team) { 
 	getHistory(team);
 });

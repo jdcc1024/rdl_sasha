@@ -181,6 +181,7 @@ function encounterOpponent(team, opponentName) {
 };
 
 function getHistory(team) {
+	if (team.name == "") { return; }
 	var totalGames = 0;
 	team.stats.opponents.forEach(function(encounters, enemy) {
 		// console.log(enemy);
@@ -189,15 +190,15 @@ function getHistory(team) {
 		console.log("\t" + enemy + "\t" + encounters);
 		totalGames += encounters;
 	});
-	console.log("Team " + team.name + " has played " + (totalGames/weekCount*2) + " nights total\n");
+	console.log("Team " + team.name + " has played " + (totalGames/3) + " nights total\n");
 }
 
 var weekCount = 0; 
 for (var i = 1; i < lines.length; i++) {	
-	if (lines[i].includes("Week")) {		
+	if (lines[i].includes("Week")) {
 		weekCount++;
 		console.log("FOUND WEEK " + weekCount);
-	} else if (lines[i] == "" && !lines[i+1].includes("Week") ) {		
+	} else if (lines[i] == "" && !lines[i+1].includes("Week") ) {
 		var curWeek = [
 				{'gym': weekCount, 'teams' : [ lines[i+1], lines[i+2], lines[i+3], lines[i+4] ]},
 				{'gym': weekCount, 'teams' : [ lines[i+5], lines[i+6], lines[i+7], lines[i+8] ]}

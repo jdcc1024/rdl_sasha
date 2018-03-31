@@ -44,9 +44,13 @@ function main() {
         var signedJSON = myResult[0];
         var rosterJSON = myResult[1];
 
-        var waiverList  = pullWaivers(signedJSON);
+        var playerTeamMap  = pullWaivers(signedJSON);
         var teamRosters = pullRosters(rosterJSON);
         // compare teamRosters with waiver players
+
+        var waiverList = Array.from(playerTeamMap.keys());
+        // console.log(waiverList);
+        
         teamRosters.forEach(function(team) {
         	console.log("\n" + team.team);
         	var players = team.players;
@@ -66,7 +70,10 @@ function main() {
         console.log("\n Players who double signed, or are not in an official roster");
         waiverList.forEach(function(player) {
             if (player != undefined) {
-                console.log("Missing from Roster: " + player);
+                // Add this player who hasn't signed, and add check their corresponding signed team
+
+                var team = playerTeamMap.get(player);
+                console.log("Missing from Roster: " + player + ", \t\tteam: " + team);
             }
         });
     });
@@ -85,7 +92,7 @@ function matchTeam(arr, teamName) {
 };
 
 function pullWaivers(waiverJSON) {
-	var signedPlayers = [];
+	var signedPlayers = new Map();
 
     var teamList = [];
     var playerList = [];
@@ -93,14 +100,25 @@ function pullWaivers(waiverJSON) {
     var waiverInfo = waiverJSON.table.rows;
 
     waiverInfo.forEach(function(entry) {
+        // if signed date matches criteria
+
         var firstName = entry.c[1].v;
         var lastName  = entry.c[2].v;
 
-        var playerName = firstName.trim() + " " + lastName.trim();
+        var teamName  = entry.c[4].v;
 
-    	if (!signedPlayers.includes(playerName)) {
-    		signedPlayers.push(playerName.toUpperCase().trim());
-    	}
+        var playerName = firstName.trim() + " " + lastName.trim();
+        var playerName = playerName.toUpperCase().trim();
+
+        if (!signedPlayers.has(playerName)) {
+            signedPlayers.set(playerName, teamName);
+        }
+        else {
+            console.log("Found duplicate player!! " + playerName + "\t\t" + teamName);
+        }
+    	// if (!signedPlayers.includes(playerName)) {
+    	// 	signedPlayers.push(playerName.toUpperCase().trim());
+    	// }
     });
 
     return signedPlayers;

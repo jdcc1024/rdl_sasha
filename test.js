@@ -10,14 +10,18 @@ var urlQuery = "gviz/tq?tq=" + sqlQuery;
 var rosterHash = "1uIGWI3CzdNPlXPgHvt1hLBu9-BLSAUK32AsGZoFDVlI";
 var waiverHash = "1QOFmQjSvypT_pfdu_lrE9GXHcde8bJ0KayzZW-IaZ3c";
 var signedHash = "1KPtNdoPCj6Dop2NOXNrVTJBESaer5PFRG9S1tQ6L4LQ";
+var dinoteamHash = "16hSvEbxUTS0XlRUz-d0mjxoVcRQgeCjYVDG-RQybrLM";
 // https://docs.google.com/spreadsheets/d/1QOFmQjSvypT_pfdu_lrE9GXHcde8bJ0KayzZW-IaZ3c/gviz/tq?q=select%20*
 // https://docs.google.com/spreadsheets/d/1QOFmQjSvypT_pfdu_lrE9GXHcde8bJ0KayzZW-IaZ3c/edit?usp=sharing
 // https://docs.google.com/spreadsheets/d/1KPtNdoPCj6Dop2NOXNrVTJBESaer5PFRG9S1tQ6L4LQ/edit?usp=sharing
+// https://docs.google.com/spreadsheets/d/16hSvEbxUTS0XlRUz-d0mjxoVcRQgeCjYVDG-RQybrLM/edit?usp=sharing
+// https://docs.google.com/spreadsheets/d/16hSvEbxUTS0XlRUz-d0mjxoVcRQgeCjYVDG-RQybrLM/edit?usp=sharing
 
 // var rosterURL = 'https://docs.google.com/spreadsheets/d/' + rosterHash + '/' + urlQuery;
 var waiverURL = 'https://docs.google.com/spreadsheets/d/' + waiverHash + '/' + urlQuery;
 var signedURL = 'https://docs.google.com/spreadsheets/d/' + signedHash + '/' + urlQuery; //'/gviz/tq?tq=' + orderBy;
 var rosterURL = 'https://docs.google.com/spreadsheets/d/' + signedHash + '/' + urlQuery + '&gid=927592039'; //'/gviz/tq?tq=' + orderBy;
+var dinoteamURL = 'https://docs.google.com/spreadsheets/d/' + dinoteamHash + '/' + urlQuery + '&gid=377382517';
 
 // List of Players, Teams, Waiver data
 var seasondata = {};
@@ -39,13 +43,21 @@ function main() {
 
     var rosterPromise    = readSheetByURL(rosterURL);
     var signaturePromise = readSheetByURL(signedURL);
+    var dinoteamPromise = readSheetByURL(dinoteamURL);
 
-    Promise.all([signaturePromise, rosterPromise]).then((myResult) => {
+    Promise.all([signaturePromise, rosterPromise, dinoteamPromise]).then((myResult) => {
         var signedJSON = myResult[0];
         var rosterJSON = myResult[1];
+        var dinoteamJSON = myResult[2];
+
+
+        var dinosaurs = pullDinoteams(dinoteamJSON);
+        return;
 
         var playerTeamMap  = pullWaivers(signedJSON);
         var teamRosters = pullRosters(rosterJSON);
+
+
         // compare teamRosters with waiver players
 
         var waiverList = Array.from(playerTeamMap.keys());
@@ -160,6 +172,53 @@ function pullRosters(rosterJSON) {
         });
     });
     return teamStruct;
+};
+
+function pullDinoteams(dinoJSON) {
+    var teamStruct = [];
+    /*
+    [ { teamName: 'x', 
+        players: [{ playerName: y, signed: null}] 
+    } ]
+    */    
+    var columnInfo = dinoJSON.table.col;
+    var playerInfo   = dinoJSON.table.rows;
+
+    // console.log(dinoJSON); 
+    playerInfo.forEach(function(entry) {
+        // Eventually add logic to determine correct column
+        var firstName = entry.c[0].v;
+        var lastName  = entry.c[1].v;
+        var teamName  = entry.c[2].v;
+        var vdlTeamName = entry.c[3].v;
+        var restrictions = entry.c[4].v;
+
+        if (firstName == "Firstname") return;
+        // firstName = (firstName == undefined) ? "INCOMPLETE" : firstName;
+        // lastName  = (lastName == undefined)  ? "ROSTER"     : lastName;
+        var playerName = firstName.trim() + " " + lastName.trim();
+
+        if (restrictions != "") {
+            console.log("Player:" + playerName + ",\tVDL Team: " + vdlTeamName + ",\tRestrictions: " + restrictions);
+            
+        }
+        
+
+        // if (!matchTeam(teamStruct, teamName) && teamName != 'Team') {
+        //     var teamJson = {team: teamName, players: []};
+        //     teamStruct.push(teamJson);
+        // }
+
+        // teamStruct.forEach(function(curTeam) {
+        //     if (curTeam.team == teamName) {
+        //         if (!curTeam.players.includes(playerName)) {
+        //             // console.log("New player found! " + playerName);
+        //             curTeam.players.push(playerName.trim());
+        //         }
+        //     }
+        // });
+    });
+    return;
 };
 
 function readSheetByURL(googleSheetURL) {

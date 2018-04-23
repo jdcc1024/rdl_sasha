@@ -184,40 +184,96 @@ function pullDinoteams(dinoJSON) {
     var columnInfo = dinoJSON.table.col;
     var playerInfo   = dinoJSON.table.rows;
 
-    // console.log(dinoJSON); 
+    var vdlSchedule = [];
+    vdlSchedule.push({ teamName: "Misfit Mondays",      timeslot: 1} );
+    vdlSchedule.push({ teamName: "Dumbledore's Army",   timeslot: 1} );
+    vdlSchedule.push({ teamName: "McDodgin",            timeslot: 1} );
+    vdlSchedule.push({ teamName: "Awkward Penguins",    timeslot: 1} );
+    vdlSchedule.push({ teamName: "Lil Ninja",           timeslot: 1} );
+    vdlSchedule.push({ teamName: "Team China",          timeslot: 1} );
+    vdlSchedule.push({ teamName: "Team Asia",           timeslot: 2} );
+    vdlSchedule.push({ teamName: "Team Philippines",    timeslot: 2} );
+    vdlSchedule.push({ teamName: "Team China 2",        timeslot: 2} );
+    vdlSchedule.push({ teamName: "mushroom MUSHROOM!!", timeslot: 2} );
+    vdlSchedule.push({ teamName: "Throbocops",          timeslot: 2} );
+    vdlSchedule.push({ teamName: "(o) (o)",             timeslot: 2} );
+
+    var teamCount = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+    var teamComposition = [];
+    for (var i = 0; i <= 16; i++) {
+        teamComposition.push( {teamName: i, players: [], restrictions: [], skillLevel: 0} );
+    }
+
+    var playerRestrictionList = [];
+
+    console.log("");
+    console.log(playerInfo); 
     playerInfo.forEach(function(entry) {
         // Eventually add logic to determine correct column
         var firstName = entry.c[0].v;
         var lastName  = entry.c[1].v;
-        var teamName  = entry.c[2].v;
+        var dinoTeam  = entry.c[2].v;
         var vdlTeamName = entry.c[3].v;
         var restrictions = entry.c[4].v;
+        var skillLevel = entry.c[5].v;
+        var teamRestriction = vdlTeamName + ":" + restrictions;
 
         if (firstName == "Firstname") return;
         // firstName = (firstName == undefined) ? "INCOMPLETE" : firstName;
         // lastName  = (lastName == undefined)  ? "ROSTER"     : lastName;
         var playerName = firstName.trim() + " " + lastName.trim();
-
-        if (restrictions != "") {
-            console.log("Player:" + playerName + ",\tVDL Team: " + vdlTeamName + ",\tRestrictions: " + restrictions);
-            
+        console.log(teamComposition[dinoTeam].skillLevel + skillLevel);
+        teamComposition[dinoTeam].skillLevel = teamComposition[dinoTeam].skillLevel + skillLevel;
+        teamComposition[dinoTeam].players.push(playerName);
+        if (teamRestriction != "undefined:undefined") {
+            teamComposition[dinoTeam].restrictions.push(teamRestriction);
         }
+        if (restrictions != undefined) {
+            console.log("Player: " + playerName + ",\tVDL Team: " + vdlTeamName + ",\tRestrictions: " + restrictions);
+            if (vdlTeamName != "") {
+                // console.log(playerName + " plays on " + vdlTeamName);
+            }
+
+            if (restrictions.includes("player")) {
+                // console.log("Player Restriction!");
+
+            }
+            if (restrictions.includes("opposite")) {
+                // console.log("Opposite Restriction!");
+                vdlSchedule.forEach( function(vdlTeam) {
+                    if (vdlTeam.teamName == vdlTeamName) {
+                        if (vdlTeam.timeslot == 1) {
+                            console.log(playerName + "\t(" + vdlTeamName + ") must play in timeslot #2");
+                        } else if (vdlTeam.timeslot == 2) {
+                            console.log(playerName + "\t(" + vdlTeamName + ") must play in timeslot #1");
+                        }
+                    }
+                    return;
+                });
+            }
+            if (restrictions.includes("timeslot")) {
+                console.log(playerName + "\t(" + vdlTeamName + ") must play on " + restrictions);
         
-
-        // if (!matchTeam(teamStruct, teamName) && teamName != 'Team') {
-        //     var teamJson = {team: teamName, players: []};
-        //     teamStruct.push(teamJson);
-        // }
-
-        // teamStruct.forEach(function(curTeam) {
-        //     if (curTeam.team == teamName) {
-        //         if (!curTeam.players.includes(playerName)) {
-        //             // console.log("New player found! " + playerName);
-        //             curTeam.players.push(playerName.trim());
-        //         }
-        //     }
-        // });
+            }
+        }
     });
+
+    console.log(teamCount);
+
+    console.log("\n\n\n");
+    for (var i = 0; i < teamCount.length; i++) {
+        console.log("Team " + i + " has a skill level of " + teamCount[i]);
+    }
+
+    for (var i = 0; i < teamComposition.length; i++) {
+        console.log(teamComposition[i]);
+        console.log("\n");
+    }
+
+    for (var i = 0; i < teamComposition.length; i++) {
+        console.log(teamComposition[i].teamName + teamComposition[i].players[0] + ", " + teamComposition[i].restrictions);
+        // console.log("\n");
+    }
     return;
 };
 

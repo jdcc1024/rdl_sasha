@@ -50,9 +50,11 @@
 var fs = require('fs');
 
 var s8History = fs.readFileSync(".\\s8_gyms.txt", "utf8");
+var dinoHistory = fs.readFileSync(".\\dino_gyms.txt", "utf8");
 // console.log(s8History);
 
-var lines = s8History.split("\r\n");
+// var lines = s8History.split("\r\n");
+var lines = dinoHistory.split("\r\n");
 // console.log(lines);
 
 
@@ -183,18 +185,21 @@ function encounterOpponent(team, opponentName) {
 function getHistory(team) {
 	if (team.name == "") { return; }
 	var totalGames = 0;
+	console.log("\nTeam: " + team.name);
 	team.stats.opponents.forEach(function(encounters, enemy) {
+		if (enemy == "") return;
 		// console.log(enemy);
 		// console.log(encounters);
 		// console.log("\t" + team.name + " has played " + enemy + " " + encounters + " times");
 		console.log("\t" + enemy + "\t" + encounters);
 		totalGames += encounters;
 	});
-	console.log("Team " + team.name + " has played " + (totalGames/3) + " nights total\n");
+	// console.log("Team " + team.name + " has played " + (totalGames/3) + " nights total\n");
 }
 
 var weekCount = 0; 
 for (var i = 1; i < lines.length; i++) {	
+	// Ensure last line is not empty!
 	if (lines[i].includes("Week")) {
 		weekCount++;
 		console.log("FOUND WEEK " + weekCount);

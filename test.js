@@ -20,6 +20,7 @@ var dinoteamHash = "16hSvEbxUTS0XlRUz-d0mjxoVcRQgeCjYVDG-RQybrLM";
 // var rosterURL = 'https://docs.google.com/spreadsheets/d/' + rosterHash + '/' + urlQuery;
 var waiverURL = 'https://docs.google.com/spreadsheets/d/' + waiverHash + '/' + urlQuery;
 var signedURL = 'https://docs.google.com/spreadsheets/d/' + signedHash + '/' + urlQuery; //'/gviz/tq?tq=' + orderBy;
+var season1waiverURL = 'https://docs.google.com/spreadsheets/d/' + signedHash + '/' + urlQuery + '&gid=1787672357';//'/gviz/tq?tq=' + orderBy;
 var rosterURL = 'https://docs.google.com/spreadsheets/d/' + signedHash + '/' + urlQuery + '&gid=927592039'; //'/gviz/tq?tq=' + orderBy;
 var dinoteamURL = 'https://docs.google.com/spreadsheets/d/' + dinoteamHash + '/' + urlQuery + '&gid=377382517';
 
@@ -41,25 +42,41 @@ function pullGVizJSON(gQueryResp) {
 function main() {
     console.log("Pulling Waiver Info");
 
-    var rosterPromise    = readSheetByURL(rosterURL);
+    // var rosterPromise    = readSheetByURL(rosterURL);
     var signaturePromise = readSheetByURL(signedURL);
-    var dinoteamPromise = readSheetByURL(dinoteamURL);
+    // var dinoteamPromise = readSheetByURL(dinoteamURL);
+    var s1waiverPromise = readSheetByURL(season1waiverURL);
 
-    Promise.all([signaturePromise, rosterPromise, dinoteamPromise]).then((myResult) => {
+    //rosterPromise, dinoteamPromise, 
+    Promise.all([signaturePromise, s1waiverPromise]).then((myResult) => {
+        console.log("All Responses back");
+        console.log(myResult.length);
+        console.log(myResult);
+
         var signedJSON = myResult[0];
         var rosterJSON = myResult[1];
         var dinoteamJSON = myResult[2];
+        var s1waiverJSON = myResult[1];
 
-
-        var dinosaurs = pullDinoteams(dinoteamJSON);
-        return;
+        // var dinosaurs = pullDinoteams(dinoteamJSON);
+        // return;
 
         var playerTeamMap  = pullWaivers(signedJSON);
         var teamRosters = pullRosters(rosterJSON);
+        var s1players = pullS1Players(s1waiverJSON);
 
+        console.log(playerTeamMap);
+        var playerKeys = playerTeamMap.keys();
+
+        s1players.forEach(function(s1player) {
+            if (playerTeamMap.get(s1player) != null) {
+                console.log("FOUND " + s1player);
+            }
+        });
 
         // compare teamRosters with waiver players
 
+        return;
         var waiverList = Array.from(playerTeamMap.keys());
         // console.log(waiverList);
         
@@ -102,6 +119,24 @@ function matchTeam(arr, teamName) {
         }
     });
 };
+
+function pullS1Players(s1waiverJSON) {
+    console.log(s1waiverJSON);
+    var playerList = [];
+
+    var s1rows = s1waiverJSON.table.rows;
+    s1rows.forEach(function(s1player) { 
+        var firstName = s1player.c[0].v;
+        var lastName = s1player.c[1].v;
+        var email = s1player.c[2].v;
+
+        var playerName = firstName.trim() + " " + lastName.trim();
+        playerName = playerName.toUpperCase();
+        playerList.push(playerName);
+    })
+
+    return playerList;
+}
 
 function pullWaivers(waiverJSON) {
 	var signedPlayers = new Map();
@@ -173,6 +208,25 @@ function pullRosters(rosterJSON) {
     });
     return teamStruct;
 };
+
+function loadGymData() {
+
+    var pastData = [];
+    var week1 = [];
+    week1.push({timeslot: "1", gym: "Garden City", side: "a", teams: [1,2,3,4]});
+    week1.push({timeslot: "1", gym: "Garden City", side: "b", teams: [5,6,7,8]});
+    week1.push({timeslot: "2", gym: "Garden City", side: "a", teams: [9,10,11,12]});
+    week1.push({timeslot: "2", gym: "Garden City", side: "b", teams: [13,14,15,16]});
+
+    var week2 = [];
+    week2.push({timeslot: "1", gym: "Garden City", side: "a", teams: [1,2,3,4]});
+    week2.push({timeslot: "1", gym: "Garden City", side: "b", teams: [5,6,7,8]});
+    week2.push({timeslot: "2", gym: "Garden City", side: "a", teams: [9,10,11,12]});
+    week2.push({timeslot: "2", gym: "Garden City", side: "b", teams: [13,14,15,16]});
+
+
+    return pastData;
+}
 
 function pullDinoteams(dinoJSON) {
     var teamStruct = [];
@@ -343,10 +397,12 @@ function readSheetByURL(googleSheetURL) {
             googleSheetURL,
             function (error, response, body) {
                 if (!error && response.statusCode == 200) {
+                    console.log("Data returned from " + googleSheetURL);
                     var jsonResp = pullGVizJSON(body);                
                     resolve(jsonResp);
 
                 } else {
+                    // console.log(error);
                     reject(error);
                 }
             }

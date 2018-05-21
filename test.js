@@ -61,7 +61,30 @@ function main() {
         // var dinosaurs = pullDinoteams(dinoteamJSON);
         // return;
 
+        var dinosaurs = pullDinoteams(dinoteamJSON);
+
         var playerTeamMap  = pullWaivers(signedJSON);
+
+        // console.log(playerTeamMap);
+        // playerTeamMap.forEach(function(ptm) {
+        //     console.log(ptm);
+
+        // });
+
+        var waiverList = Array.from(playerTeamMap.keys());
+        console.log(waiverList);
+        dinosaurs.forEach(function(dinoPlayer){ 
+            var name = dinoPlayer.toUpperCase();
+
+            if (waiverList.includes(name)) {
+                console.log(name + " SIGNED");
+            } else {
+                console.log(" --------- " + name + " HAS NOT SIGNED");
+            }
+
+        });
+
+        return;
         var teamRosters = pullRosters(rosterJSON);
         var s1players = pullS1Players(s1waiverJSON);
 
@@ -237,6 +260,7 @@ function pullDinoteams(dinoJSON) {
     */    
     var columnInfo = dinoJSON.table.col;
     var playerInfo   = dinoJSON.table.rows;
+    var dinoPlayers = [];
 
     var vdlSchedule = [];
     vdlSchedule.push({ teamName: "Misfit Mondays",      timeslot: 1} );
@@ -291,6 +315,7 @@ function pullDinoteams(dinoJSON) {
         // firstName = (firstName == undefined) ? "INCOMPLETE" : firstName;
         // lastName  = (lastName == undefined)  ? "ROSTER"     : lastName;
         var playerName = firstName.trim() + " " + lastName.trim();
+        dinoPlayers.push(playerName);
         // console.log(teamComposition[dinoTeam].skillLevel + skillLevel);
         teamComposition[dinoTeam].skillLevel = teamComposition[dinoTeam].skillLevel + skillLevel;
         var playerData = {name: playerName, vdlTeam: vdlTeamName, restrictions: restrictions};
@@ -387,7 +412,7 @@ function pullDinoteams(dinoJSON) {
         }
         console.log("----------------------");
     }
-    return;
+    return dinoPlayers;
 };
 
 function readSheetByURL(googleSheetURL) {
